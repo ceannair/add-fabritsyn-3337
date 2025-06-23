@@ -7,66 +7,121 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
         }
         #todoList {
+            width: 100%;
             border-collapse: collapse;
-            width: 70%;
-            margin: 0 auto;
+            margin: 20px 0;
         }
         #todoList th, #todoList td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
             text-align: left;
         }
         #todoList th {
-            background-color: #f0f0f0;
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
         }
-        #todoList th:first-child, #todoList th:last-child {
-            width: 5%;
+        #todoList tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
-        #todoList th:nth-child(2) {
-            width: 90%;
+        #todoList tr:hover {
+            background-color: #f1f1f1;
         }
-        .add-form {
-            margin-top: 20px;
-            width: 70%;
-            margin: 20px auto;
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-right: 5px;
         }
-        .add-form input[type="text"] {
+        .edit-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        .edit-btn:hover {
+            background-color: #0b7dda;
+        }
+        .save-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .save-btn:hover {
+            background-color: #45a049;
+        }
+        .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        .cancel-btn:hover {
+            background-color: #d32f2f;
+        }
+        .edit-input {
+            width: 100%;
             padding: 8px;
-            width: 70%;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
-        .add-form button {
-            padding: 8px;
-            width: 20%;
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+        .edit-notification {
+            background-color: #2196F3;
         }
     </style>
 </head>
 <body>
+<div class="container">
+    <h2>Editable To-Do List</h2>
 
-<h2 style="text-align: center;">To-Do List</h2>
-
-<table id="todoList">
-    <thead>
-        <tr>
-            <th>Number</th>
-            <th>Text</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody id="listBody">
-        {{rows}}
-    </tbody>
-</table>
-
-<div class="add-form">
-    <input type="text" id="newItem" placeholder="Enter new item">
-    <button onclick="addItem()">Add</button>
+    <table id="todoList">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Task Description</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="listBody">
+            {{rows}}
+        </tbody>
+    </table>
 </div>
 
 <script>
-    let items = [];
-    let nextId = 1;
+    let items = [
+        { id: 1, text: 'Review project requirements' },
+        { id: 2, text: 'Design user interface' },
+        { id: 3, text: 'Implement core features' },
+        { id: 4, text: 'Test application functionality' }
+    ];
 
     function renderList() {
         const listBody = document.getElementById('listBody');
@@ -77,28 +132,90 @@
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${item.text}</td>
-                <td><button onclick="removeItem(${index})">Remove</button></td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="startEdit(${index})">
+                        Edit
+                    </button>
+                </td>
             `;
             listBody.appendChild(row);
         });
     }
 
-    function addItem() {
-        const newItemInput = document.getElementById('newItem');
-        const newItemText = newItemInput.value.trim();
-
-        if (newItemText) {
-            items.push({ id: nextId++, text: newItemText });
-            newItemInput.value = '';
-            renderList();
+    function startEdit(index) {
+        const listBody = document.getElementById('listBody');
+        const rows = listBody.getElementsByTagName('tr');
+        
+        if (rows[index]) {
+            const item = items[index];
+            rows[index].innerHTML = `
+                <td>${index + 1}</td>
+                <td>
+                    <input type="text" class="edit-input" id="editInput-${index}" 
+                           value="${item.text}">
+                </td>
+                <td>
+                    <button class="action-btn save-btn" onclick="saveEdit(${index})">
+                        Save
+                    </button>
+                    <button class="action-btn cancel-btn" onclick="cancelEdit(${index})">
+                        Cancel
+                    </button>
+                </td>
+            `;
+            
+            // Focus and select the text in the input field
+            const inputField = document.getElementById(`editInput-${index}`);
+            inputField.focus();
+            inputField.select();
         }
     }
 
-    function removeItem(index) {
-        items.splice(index, 1);
+    function saveEdit(index) {
+        const inputField = document.getElementById(`editInput-${index}`);
+        const newText = inputField.value.trim();
+        
+        if (newText) {
+            // Update the item in the array
+            items[index].text = newText;
+            
+            // Re-render the list
+            renderList();
+            
+            // Show notification
+            showNotification(`Updated: ${newText}`, 'edit-notification');
+        }
+    }
+
+    function cancelEdit(index) {
+        // Simply re-render the list without saving changes
         renderList();
     }
-</script>
 
+    function showNotification(message, className) {
+        // Remove existing notification if any
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+            document.body.removeChild(existingNotification);
+        }
+        
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.className = `notification ${className}`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 500);
+        }, 2000);
+    }
+
+    // Initialize on page load
+    window.onload = renderList;
+</script>
 </body>
 </html>
