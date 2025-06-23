@@ -7,50 +7,58 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
         }
         #todoList {
             border-collapse: collapse;
             width: 70%;
-            margin: 0 auto;
+            margin: 20px auto;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         #todoList th, #todoList td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
             text-align: left;
         }
         #todoList th {
-            background-color: #f0f0f0;
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
         }
-        #todoList th:first-child, #todoList th:last-child {
-            width: 5%;
+        #todoList tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
-        #todoList th:nth-child(2) {
-            width: 90%;
+        #todoList tr:hover {
+            background-color: #f1f1f1;
         }
-        .add-form {
-            margin-top: 20px;
-            width: 70%;
-            margin: 20px auto;
+        .action-btn {
+            padding: 6px 12px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-        .add-form input[type="text"] {
-            padding: 8px;
-            width: 70%;
+        .action-btn:hover {
+            background-color: #d32f2f;
         }
-        .add-form button {
-            padding: 8px;
-            width: 20%;
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 30px;
         }
     </style>
 </head>
 <body>
 
-<h2 style="text-align: center;">To-Do List</h2>
+<h2>To-Do List</h2>
 
 <table id="todoList">
     <thead>
         <tr>
-            <th>Number</th>
-            <th>Text</th>
+            <th>#</th>
+            <th>Task Description</th>
             <th>Action</th>
         </tr>
     </thead>
@@ -59,14 +67,13 @@
     </tbody>
 </table>
 
-<div class="add-form">
-    <input type="text" id="newItem" placeholder="Enter new item">
-    <button onclick="addItem()">Add</button>
-</div>
-
 <script>
-    let items = [];
-    let nextId = 1;
+    let items = [
+        { id: 1, text: 'Review project requirements' },
+        { id: 2, text: 'Implement core functionality' },
+        { id: 3, text: 'Test application thoroughly' },
+        { id: 4, text: 'Prepare documentation' }
+    ];
 
     function renderList() {
         const listBody = document.getElementById('listBody');
@@ -77,27 +84,58 @@
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${item.text}</td>
-                <td><button onclick="removeItem(${index})">Remove</button></td>
+                <td>
+                    <button class="action-btn" onclick="removeItem(${index})">
+                        Remove
+                    </button>
+                </td>
             `;
             listBody.appendChild(row);
         });
     }
 
-    function addItem() {
-        const newItemInput = document.getElementById('newItem');
-        const newItemText = newItemInput.value.trim();
-
-        if (newItemText) {
-            items.push({ id: nextId++, text: newItemText });
-            newItemInput.value = '';
-            renderList();
-        }
-    }
-
     function removeItem(index) {
+        // Get the item being removed
+        const removedItem = items[index];
+        
+        // Remove from local array
         items.splice(index, 1);
+        
+        // Show notification
+        showNotification(`Removed: ${removedItem.text}`);
+        
+        // Re-render the list
         renderList();
     }
+
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            background-color: #f44336;
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: opacity 0.5s;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 2000);
+    }
+
+    // Initialize on page load
+    window.onload = renderList;
 </script>
 
 </body>
